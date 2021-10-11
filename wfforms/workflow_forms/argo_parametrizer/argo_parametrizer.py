@@ -13,7 +13,7 @@ def add_obc_file_download(wftext, run_key, fname, server_url):
         if template['name'] == 'SCRIPTOBCINIT':
             # Found the init script
             template['script']['source'] += '\n'
-            template['script']['source'] += f'curl {server_url}/wfforms/files/{run_key}/{fname} > ${{OBC_DATA_PATH}}/{fname}'
+            template['script']['source'] += f'curl {server_url}/wfforms/files/{run_key}/{fname} > ${{OBC_WORK_PATH}}/{fname}'
             break
     return safe_dump(wfdict)
 
