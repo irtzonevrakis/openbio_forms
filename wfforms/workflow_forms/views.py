@@ -8,6 +8,10 @@ from .wf_dynamic_form import get_django_form_from_tsv
 
 from .argo_parametrizer.argo_parametrizer import *
 
+from .secrets import *
+
+import requests
+
 def index(request):
     template = loader.get_template('index.html')
     return HttpResponse(template.render({}, request))
@@ -25,6 +29,8 @@ def upload(request):
     return render(request, 'form.html', context)
 
 from uuid import uuid4, UUID
+import json
+import yaml
 def render_form(request, workflow_name):
     workflow_instance = get_object_or_404(Workflow_Template, 
                                           workflow_name=workflow_name)
@@ -52,9 +58,20 @@ def render_form(request, workflow_name):
                     variables.append({'name': k, 'value': cd[k]})
             wf_yaml = add_argo_variables(wf_yaml,
                                        variables)
-            response = HttpResponse(wf_yaml, content_type='application/x-yaml')
-            response['Content-Disposition'] = f'inline; filename={workflow_name}_mod.yaml'
+            k = {'workflow': yaml.safe_load(wf_yaml)} #TODO: Make this unnecessary
+            headers = {'Authorization': argo_token,
+                       'content-type': 'application/json'}
+            r = requests.post(f'{argo_server}/api/v1/workflows/{argo_namespace}',
+                              data=json.dumps(k),
+                              headers=headers)
+            if r.status_code == 200:
+                response = HttpResponse('Workflow submitted successfully!')
+            else:
+                response = HttpResponse('Failed X_X\n'+r.text)
             return response
+            '''response = HttpResponse(wf_yaml, content_type='application/x-yaml')
+            response['Content-Disposition'] = f'inline; filename={workflow_name}_mod.yaml'
+            return response'''
 
     context = {'form': form}
 
