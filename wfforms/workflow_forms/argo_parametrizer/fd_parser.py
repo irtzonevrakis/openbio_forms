@@ -17,7 +17,7 @@ def cast_str_with_maxlength(t, ma):
 def parse_field_definition(text):
     '''parse_filed_format: Parse field definition
        text: A multi-line str-like object of the following format:
-       field_name\tfield_descr\tfield_type\tdefault_value\tlim_min\tlim_max\tstored_name
+       field_name,field_descr,field_type,default_value,lim_min,lim_max,stored_name
        where:
            * field_name: The name of the field being defined
            * field_descr: The description of the field being defined
