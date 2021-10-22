@@ -62,7 +62,7 @@ def render_form(request, workflow_name):
             headers = {'Authorization': argo_token,
                        'content-type': 'application/json'}
             r = requests.post(f'{argo_server}/api/v1/workflows/{argo_namespace}',
-                              data=json.dumps(k),
+                              data=json.dumps(k), # XXX Argo API only accepts JSON
                               headers=headers)
             if r.status_code == 200:
                 response = HttpResponse('Workflow submitted successfully!')
