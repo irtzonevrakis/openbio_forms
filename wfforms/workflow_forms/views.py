@@ -55,7 +55,7 @@ def render_form(request, workflow_name):
             variables = [{'name': 'RUN_KEY', 'value': str(run_key)}]
             for k in cd.keys():
                 if type(cd[k]) == int or type(cd[k]) == float or type(cd[k]) == str:
-                    variables.append({'name': k, 'value': cd[k]})
+                    variables.append({'name': k, 'value': str(cd[k])})
             wf_yaml = add_argo_variables(wf_yaml,
                                        variables)
             k = {'workflow': yaml.safe_load(wf_yaml)} #TODO: Make this unnecessary
