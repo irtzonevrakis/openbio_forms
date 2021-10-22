@@ -29,8 +29,7 @@ def upload(request):
     return render(request, 'form.html', context)
 
 from uuid import uuid4, UUID
-import json
-import yaml
+
 def render_form(request, workflow_name):
     workflow_instance = get_object_or_404(Workflow_Template, 
                                           workflow_name=workflow_name)
@@ -40,29 +39,26 @@ def render_form(request, workflow_name):
         if form.is_valid():
             run_key = uuid4()
             cd = form.cleaned_data
-            wf_yaml = workflow_instance.workflow_yaml
+            wf = ArgoWF(workflow_instance.workflow_yaml)
             if request.FILES:
-                wf_yaml = add_obc_download_preamble(wf_yaml)
+                wf.add_obc_download_preamble()
                 for k in request.FILES.keys():
                     record = Uploaded_File(fname=k,
                                            uid=run_key,
                                            uploaded_file=request.FILES[k])
                     record.save()
-                    wf_yaml = add_obc_file_download(wf_yaml,
-                                                    run_key,
-                                                    k,
-                                                    request._current_scheme_host)
+                    wf.add_obc_file_download(run_key,
+                                             k,
+                                             request._current_scheme_host)
             variables = [{'name': 'RUN_KEY', 'value': str(run_key)}]
             for k in cd.keys():
                 if type(cd[k]) == int or type(cd[k]) == float or type(cd[k]) == str:
                     variables.append({'name': k, 'value': str(cd[k])})
-            wf_yaml = add_argo_variables(wf_yaml,
-                                       variables)
-            k = {'workflow': yaml.safe_load(wf_yaml)} #TODO: Make this unnecessary
+            wf.add_argo_variables(variables)
             headers = {'Authorization': argo_token,
                        'content-type': 'application/json'}
             r = requests.post(f'{argo_server}/api/v1/workflows/{argo_namespace}',
-                              data=json.dumps(k), # XXX Argo API only accepts JSON
+                              data=wf.dump_json_for_argo_api(), # XXX Argo API only accepts JSON
                               headers=headers)
             if r.status_code == 200:
                 response = HttpResponse('Workflow submitted successfully!')
